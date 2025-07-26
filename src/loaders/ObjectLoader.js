@@ -62,6 +62,7 @@ import * as Geometries from '../geometries/Geometries.js';
 import { getTypedArray } from '../utils.js';
 import { Box3 } from '../math/Box3.js';
 import { Sphere } from '../math/Sphere.js';
+import { Heap } from 'heap-js';
 
 /**
  * A loader for loading a JSON resource in the [JSON Object/Scene format]{@link https://github.com/mrdoob/three.js/wiki/JSON-Object-Scene-format-4}.
@@ -1000,6 +1001,9 @@ class ObjectLoader extends Loader {
 
 				object._availableInstanceIds = data._availableInstanceIds;
 				object._availableGeometryIds = data._availableGeometryIds;
+				Heap.heapify( object._availableInstanceIds );
+				Heap.heapify( object._availableGeometryIds );
+
 
 				object._nextIndexStart = data.nextIndexStart;
 				object._nextVertexStart = data.nextVertexStart;

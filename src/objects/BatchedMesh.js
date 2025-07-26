@@ -11,6 +11,7 @@ import { Frustum } from '../math/Frustum.js';
 import { Vector3 } from '../math/Vector3.js';
 import { Color } from '../math/Color.js';
 import { FrustumArray } from '../math/FrustumArray.js';
+import { Heap } from 'heap-js';
 
 function ascIdSort( a, b ) {
 
@@ -251,6 +252,7 @@ class BatchedMesh extends Mesh {
 		this._geometryInfo = [];
 
 		// instance, geometry ids that have been set as inactive, and are available to be overwritten
+		// organized as binary heaps
 		this._availableInstanceIds = [];
 		this._availableGeometryIds = [];
 
@@ -580,9 +582,7 @@ class BatchedMesh extends Mesh {
 		// Prioritize using previously freed instance ids
 		if ( this._availableInstanceIds.length > 0 ) {
 
-			this._availableInstanceIds.sort( ascIdSort );
-
-			drawId = this._availableInstanceIds.shift();
+			drawId = Heap.heappop( this._availableInstanceIds );
 			this._instanceInfo[ drawId ] = instanceInfo;
 
 		} else {
@@ -677,9 +677,7 @@ class BatchedMesh extends Mesh {
 		let geometryId;
 		if ( this._availableGeometryIds.length > 0 ) {
 
-			this._availableGeometryIds.sort( ascIdSort );
-
-			geometryId = this._availableGeometryIds.shift();
+			geometryId = Heap.heappop( this._availableGeometryIds );
 			geometryInfoList[ geometryId ] = geometryInfo;
 
 
@@ -845,7 +843,7 @@ class BatchedMesh extends Mesh {
 		}
 
 		geometryInfoList[ geometryId ].active = false;
-		this._availableGeometryIds.push( geometryId );
+		Heap.heappush( this._availableGeometryIds, geometryId );
 		this._visibilityChanged = true;
 
 		return this;
@@ -863,7 +861,7 @@ class BatchedMesh extends Mesh {
 		this.validateInstanceId( instanceId );
 
 		this._instanceInfo[ instanceId ].active = false;
-		this._availableInstanceIds.push( instanceId );
+		Heap.heappush( this._availableInstanceIds, instanceId );
 		this._visibilityChanged = true;
 
 		return this;
@@ -1257,6 +1255,8 @@ class BatchedMesh extends Mesh {
 			availableInstanceIds.pop();
 
 		}
+
+		Heap.heapify( availableInstanceIds );
 
 		// throw an error if it can't be shrunk to the desired size
 		if ( maxInstanceCount < instanceInfo.length ) {
